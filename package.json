@@ -1,0 +1,38 @@
+{
+  "name": "generic_api",
+  "version": "0.0.1",
+  "description": "A generic API for use with various frontends",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "api",
+    "javascript",
+    "js",
+    "mysql",
+    "sql",
+    "nodemon",
+    "express",
+    "node",
+    "npm"
+  ],
+  "author": "Sigmund Frost",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.12.0",
+    "nodemon": "^3.1.9",
+    "sanitize-html": "^2.14.0",
+    "sequelize": "^6.37.5",
+    "uuidv4": "^6.2.13",
+    "validator": "^13.12.0"
+  }
+}
