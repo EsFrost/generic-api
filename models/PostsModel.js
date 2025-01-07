@@ -5,6 +5,12 @@ async function getAllPosts() {
   return rows;
 }
 
+async function getPostById(id) {
+  const [rows] = await pool.query(`SELECT * FROM posts WHERE id = ?`, [id]);
+  return rows[0];
+}
+
 module.exports = {
   getAllPosts,
+  getPostById,
 };

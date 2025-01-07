@@ -12,6 +12,23 @@ async function showAllPosts(req, res) {
   }
 }
 
+async function showPost(req, res) {
+  try {
+    let id = req.params.id;
+    id = sanitizeHtml(id);
+
+    if (validator.isUUID(id)) {
+      const result = await postModel.getPostById(id);
+      res.status(200).send(result);
+    } else {
+      res.status(400).json({ error: "Invalid post id!" });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 module.exports = {
   showAllPosts,
+  showPost,
 };
