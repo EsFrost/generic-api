@@ -14,6 +14,7 @@ app.use(
       "http://localhost:3001",
       "http://192.168.1.190:3001",
       /^http:\/\/192\.168\.1\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(:[0-9]+)?$/,
+      "*",
     ],
     credentials: true, // Allows cookies with CORS
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "UPDATE"],
