@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
+const postsRouter = require("./routes/PostsRoutes");
 require("dotenv").config();
 
 app.use(express.json());
@@ -30,6 +31,8 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+
+app.use("/posts", postsRouter);
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(3000, () => {
