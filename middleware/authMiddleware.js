@@ -20,11 +20,13 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-const isAdmin = (req, res, next) => {
-  if (!req.user || !req.user.access_level) {
-    return res.status(403).json({ error: "Admin access required" });
-  }
-  next();
-};
+// Might be used in the future if users have different access levels
+// const isAdmin = (req, res, next) => {
+//   if (!req.user || !req.user.access_level) {
+//     return res.status(403).json({ error: "Admin access required" });
+//   }
+//   next();
+// };
 
-module.exports = { authMiddleware, isAdmin };
+// module.exports = { authMiddleware, isAdmin };
+module.exports = { authMiddleware };
