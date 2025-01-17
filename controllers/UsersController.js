@@ -69,7 +69,24 @@ async function showAllUsers(req, res) {
   }
 }
 
+async function logoutUser(req, res) {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // Added security measure
+      domain: "localhost",
+      path: "/",
+    });
+
+    res.status(200).json({ message: "Logout successful" });
+  } catch (err) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 module.exports = {
   loginUser,
   showAllUsers,
+  logoutUser,
 };

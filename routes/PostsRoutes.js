@@ -7,4 +7,9 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 postsRouter.get("/", postsController.showAllPosts);
 postsRouter.get("/:id", postsController.showPost);
 
+/* Protected routes */
+postsRouter.post("/", authMiddleware, postsController.newPost);
+postsRouter.put("/:id", authMiddleware, postsController.editPost);
+postsRouter.delete("/:id", authMiddleware, postsController.deletePost);
+
 module.exports = postsRouter;

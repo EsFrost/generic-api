@@ -6,4 +6,7 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 /* Public routes */
 usersRouter.post("/login", usersController.loginUser);
 
+/* Protected routes */
+usersRouter.post("/logout", authMiddleware, usersController.logoutUser);
+
 module.exports = usersRouter;

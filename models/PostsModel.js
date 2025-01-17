@@ -12,7 +12,7 @@ async function getPostById(id) {
 
 async function createPost(id, title, content) {
   const [rows] = await pool.query(
-    `INSERT INTO posts (title, content) VALUES (?, ?, ?)`,
+    `INSERT INTO posts (id, title, content) VALUES (?, ?, ?)`,
     [id, title, content]
   );
 }
