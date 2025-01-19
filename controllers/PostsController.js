@@ -2,9 +2,72 @@ const { v4: uuidv4 } = require("uuid");
 const postsModel = require("../models/PostsModel");
 const sanitizeHtml = require("sanitize-html");
 const validator = require("validator");
-const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const secret = process.env.JWT_SECRET;
+
+// Configure sanitize-html options for TinyMCE content
+const sanitizeOptions = {
+  allowedTags: [
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "blockquote",
+    "p",
+    "a",
+    "ul",
+    "ol",
+    "nl",
+    "li",
+    "b",
+    "i",
+    "strong",
+    "em",
+    "strike",
+    "code",
+    "hr",
+    "br",
+    "div",
+    "table",
+    "thead",
+    "caption",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "pre",
+    "span",
+    "img",
+    "sub",
+    "sup",
+  ],
+  allowedAttributes: {
+    a: ["href", "name", "target"],
+    img: ["src", "alt", "height", "width"],
+    "*": ["style", "class"], // Allow style and class attributes on all elements
+  },
+  allowedStyles: {
+    "*": {
+      // Allow color and text-related properties
+      color: [
+        /^#(0x)?[0-9a-f]+$/i,
+        /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/,
+      ],
+      "text-align": [/^left$/, /^right$/, /^center$/, /^justify$/],
+      "font-size": [/^\d+(?:px|em|%)$/],
+      "text-decoration": [/^underline$/, /^line-through$/],
+      "font-weight": [/^bold$/, /^normal$/],
+      "font-style": [/^italic$/],
+      "background-color": [
+        /^#(0x)?[0-9a-f]+$/i,
+        /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/,
+      ],
+    },
+  },
+  allowedSchemes: ["http", "https", "ftp", "mailto"],
+  allowProtocolRelative: true,
+};
 
 async function showAllPosts(req, res) {
   try {
@@ -35,8 +98,10 @@ async function newPost(req, res) {
   let { title, content } = req.body;
   const id = uuidv4();
 
+  // Sanitize title normally (no HTML needed)
   title = sanitizeHtml(title);
-  content = sanitizeHtml(content);
+  // Sanitize content with TinyMCE-friendly options
+  content = sanitizeHtml(content, sanitizeOptions);
 
   if (validator.isUUID(id)) {
     try {
@@ -56,8 +121,10 @@ async function editPost(req, res) {
   let { title, content } = req.body;
   const id = req.params.id;
 
+  // Sanitize title normally (no HTML needed)
   title = sanitizeHtml(title);
-  content = sanitizeHtml(content);
+  // Sanitize content with TinyMCE-friendly options
+  content = sanitizeHtml(content, sanitizeOptions);
 
   if (validator.isUUID(id)) {
     try {
