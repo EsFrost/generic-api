@@ -14,7 +14,10 @@ DROP TABLE IF EXISTS posts;
 CREATE TABLE posts (
     id CHAR(36) PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
-    content TEXT NOT NULL
+    content LONGTEXT NOT NULL,
+    image_url VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Create categories table
@@ -30,7 +33,8 @@ CREATE TABLE posts_categories (
     p_id VARCHAR(36) NOT NULL,
     c_id VARCHAR(36) NOT NULL,
     FOREIGN KEY (p_id) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (c_id) REFERENCES categories(id) ON DELETE CASCADE
+    FOREIGN KEY (c_id) REFERENCES categories(id) ON DELETE CASCADE,
+    UNIQUE(p_id, c_id)
 );
 
 -- Add indexes for better query performance
