@@ -6,6 +6,7 @@ const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const postsRouter = require("./routes/PostsRoutes");
 const usersRouter = require("./routes/UsersRoutes");
+const categoriesRouter = require("./routes/CategoriesRoutes");
 require("dotenv").config();
 
 app.use(express.json());
@@ -26,13 +27,14 @@ app.use(cookieParser());
 
 const limiter = rateLimit({
   windowsMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes) // originally 100 which is reasonable
+  max: 1000, // Limit each IP to x requests per `window` (here, per 15 minutes) // originally 100 which is reasonable
 });
 
 app.use(limiter);
 
 app.use("/posts", postsRouter);
 app.use("/users", usersRouter);
+app.use("/categories", categoriesRouter);
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(3000, () => {
