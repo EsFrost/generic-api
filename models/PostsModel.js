@@ -38,8 +38,20 @@ async function getPostCategories(postId) {
   return rows;
 }
 
-async function addCategoryToPost(postId, categoryId) {
-  const id = uuidv4();
+async function checkCategoryExists(postId, categoryId) {
+  const [rows] = await pool.query(
+    "SELECT * FROM posts_categories WHERE p_id = ? AND c_id = ?",
+    [postId, categoryId]
+  );
+  return rows.length > 0;
+}
+
+async function addCategoryToPost(id, postId, categoryId) {
+  const exists = await checkCategoryExists(postId, categoryId);
+  if (exists) {
+    throw new Error("DUPLICATE_CATEGORY");
+  }
+
   const [rows] = await pool.query(
     `INSERT INTO posts_categories (id, p_id, c_id) VALUES (?, ?, ?)`,
     [id, postId, categoryId]
@@ -62,6 +74,7 @@ module.exports = {
   editPost,
   deletePost,
   getPostCategories,
+  checkCategoryExists,
   addCategoryToPost,
   removeCategoryFromPost,
 };

@@ -21,42 +21,54 @@ function generateToken(user) {
 
 async function loginUser(req, res) {
   let { email, password } = req.body;
+
+  // Check for potential XSS before sanitization
+  if (
+    email.includes("<script>") ||
+    email.includes("</script>") ||
+    password.includes("<script>") ||
+    password.includes("</script>")
+  ) {
+    return res.status(400).json({ error: "Invalid data!" });
+  }
+
+  // Sanitize inputs
   email = sanitizeHtml(email);
   password = sanitizeHtml(password);
 
-  if (validator.isEmail(email) && validator.isAlphanumeric(password)) {
-    try {
-      const user = await usersModel.getUserByEmail(email);
-      if (user.length === 0) {
-        return res.status(401).json({ error: "Invalid credentials" });
-      }
+  // Validate input format
+  if (!validator.isEmail(email)) {
+    return res.status(400).json({ error: "Invalid data!" });
+  }
 
-      const isMatch = await bcrypt.compare(password, user[0].password);
-      if (!isMatch) {
-        return res.status(401).json({ error: "Invalid credentials" });
-      }
-
-      const token = generateToken(user[0]);
-
-      // secure: process.env.NODE_ENV === "production"
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-        sameSite: "lax", // Added security measure
-        domain: "localhost",
-        path: "/",
-      });
-
-      res.status(200).json({
-        message: "Login successful",
-        token: token,
-      });
-    } catch (err) {
-      res.status(500).json({ error: "Internal server error" });
+  try {
+    const user = await usersModel.getUserByEmail(email);
+    if (user.length === 0) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
-  } else {
-    res.status(400).json({ error: "Invalid data!" });
+
+    const isMatch = await bcrypt.compare(password, user[0].password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const token = generateToken(user[0]);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      sameSite: "lax",
+      domain: "localhost",
+      path: "/",
+    });
+
+    res.status(200).json({
+      message: "Login successful",
+      token: token,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 

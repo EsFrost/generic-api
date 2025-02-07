@@ -1,6 +1,6 @@
 const request = require("supertest");
 const app = require("../index");
-const pool = require("../utils/db");
+const { getPool, setupTestDb, clearTestData } = require("./test-helper");
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
 
@@ -8,6 +8,9 @@ describe("UsersController", () => {
   let testUser;
 
   beforeAll(async () => {
+    pool = await getPool();
+    await setupTestDb();
+
     // Create test user
     const hashedPassword = await bcrypt.hash("testpass123", 12);
     testUser = {
@@ -24,9 +27,7 @@ describe("UsersController", () => {
   });
 
   afterAll(async () => {
-    // Clean up test data
-    await pool.query("DELETE FROM users WHERE email = ?", [testUser.email]);
-    await pool.end();
+    await clearTestData();
   });
 
   describe("POST /users/login", () => {
@@ -71,18 +72,26 @@ describe("UsersController", () => {
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty("error", "Invalid data!");
     });
+
+    it("should detect XSS attempts", async () => {
+      const response = await request(app).post("/users/login").send({
+        email: 'test@example.com<script>alert("xss")</script>',
+        password: 'password<script>alert("xss")</script>',
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty("error", "Invalid data!");
+    });
   });
 
   describe("POST /users/logout", () => {
     let authToken;
 
     beforeEach(async () => {
-      // Login to get token
       const loginResponse = await request(app).post("/users/login").send({
         email: testUser.email,
         password: "testpass123",
       });
-
       authToken = loginResponse.body.token;
     });
 
@@ -93,10 +102,7 @@ describe("UsersController", () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty("message", "Logout successful");
-
-      // Verify cookie is cleared
-      const cookies = response.headers["set-cookie"][0].split(";");
-      expect(cookies[0]).toEqual("token=");
+      expect(response.headers["set-cookie"][0]).toContain("token=;");
     });
 
     it("should fail to logout without token", async () => {

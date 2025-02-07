@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const postsModel = require("../models/PostsModel");
+const categoriesModel = require("../models/CategoriesModel");
 const sanitizeHtml = require("sanitize-html");
 const validator = require("validator");
 require("dotenv").config();
@@ -74,7 +75,9 @@ async function showAllPosts(req, res) {
     const result = await postsModel.getAllPosts();
     res.status(200).send(result);
   } catch (err) {
-    console.log(err);
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: err.message });
   }
 }
 
@@ -85,12 +88,17 @@ async function showPost(req, res) {
 
     if (validator.isUUID(id)) {
       const result = await postsModel.getPostById(id);
+      if (!result) {
+        return res.status(404).json({ error: "Post not found" });
+      }
       res.status(200).send(result);
     } else {
       res.status(400).json({ error: "Invalid post id!" });
     }
   } catch (err) {
-    console.log(err);
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: err.message });
   }
 }
 
@@ -98,22 +106,20 @@ async function newPost(req, res) {
   let { title, content } = req.body;
   const id = uuidv4();
 
-  // Sanitize title normally (no HTML needed)
   title = sanitizeHtml(title);
-  // Sanitize content with TinyMCE-friendly options
   content = sanitizeHtml(content, sanitizeOptions);
 
-  if (validator.isUUID(id)) {
-    try {
-      await postsModel.createPost(id, title, content);
-      res.status(200).json({ message: "Post created successfully!" });
-    } catch (err) {
-      res
-        .status(500)
-        .json({ error: "Internal server error", details: err.message });
-    }
-  } else {
-    res.status(400).json({ error: "Invalid data!" });
+  if (!title || !content) {
+    return res.status(400).json({ error: "Title and content are required!" });
+  }
+
+  try {
+    await postsModel.createPost(id, title, content);
+    res.status(200).json({ message: "Post created successfully!" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: err.message });
   }
 }
 
@@ -121,98 +127,132 @@ async function editPost(req, res) {
   let { title, content } = req.body;
   const id = req.params.id;
 
-  // Sanitize title normally (no HTML needed)
   title = sanitizeHtml(title);
-  // Sanitize content with TinyMCE-friendly options
   content = sanitizeHtml(content, sanitizeOptions);
 
-  if (validator.isUUID(id)) {
-    try {
-      await postsModel.editPost(title, content, id);
-      res.status(200).json({ message: "Post edited successfully!" });
-    } catch (err) {
-      res
-        .status(500)
-        .json({ error: "Internal server error", details: err.message });
+  if (!validator.isUUID(id)) {
+    return res.status(400).json({ error: "Invalid post id!" });
+  }
+
+  if (!title || !content) {
+    return res.status(400).json({ error: "Title and content are required!" });
+  }
+
+  try {
+    const post = await postsModel.getPostById(id);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
     }
-  } else {
-    res.status(400).json({ error: "Invalid data!" });
+
+    await postsModel.editPost(title, content, id);
+    res.status(200).json({ message: "Post edited successfully!" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: err.message });
   }
 }
 
 async function deletePost(req, res) {
   const id = req.params.id;
 
-  if (validator.isUUID(id)) {
-    try {
-      await postsModel.deletePost(id);
-      res.status(200).json({ message: "Post deleted successfully!" });
-    } catch (err) {
-      res
-        .status(500)
-        .json({ error: "Internal server error", details: err.message });
+  if (!validator.isUUID(id)) {
+    return res.status(400).json({ error: "Invalid post id!" });
+  }
+
+  try {
+    const post = await postsModel.getPostById(id);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
     }
-  } else {
-    res.status(400).json({ error: "Invalid data!" });
+
+    await postsModel.deletePost(id);
+    res.status(200).json({ message: "Post deleted successfully!" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: err.message });
   }
 }
 
 async function getPostCategories(req, res) {
-  let postId = req.params.id;
-  postId = sanitizeHtml(postId);
+  const postId = req.params.postId;
 
-  if (validator.isUUID(postId)) {
-    try {
-      const categories = await postsModel.getPostCategories(postId);
-      res.status(200).send(categories);
-    } catch (err) {
-      res
-        .status(500)
-        .json({ error: "Internal server error", details: err.message });
+  if (!validator.isUUID(postId)) {
+    return res.status(400).json({ error: "Invalid post id!" });
+  }
+
+  try {
+    const post = await postsModel.getPostById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
     }
-  } else {
-    res.status(400).json({ error: "Invalid post id!" });
+
+    const categories = await postsModel.getPostCategories(postId);
+    res.status(200).json(categories);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: err.message });
   }
 }
 
 async function addCategoryToPost(req, res) {
-  let { postId, categoryId } = req.body;
-  const id = uuidv4();
+  const { postId, categoryId } = req.params;
 
-  postId = sanitizeHtml(postId);
-  categoryId = sanitizeHtml(categoryId);
+  if (!validator.isUUID(postId) || !validator.isUUID(categoryId)) {
+    return res.status(400).json({ error: "Invalid id format!" });
+  }
 
-  if (validator.isUUID(postId) && validator.isUUID(categoryId)) {
-    try {
-      await postsModel.addCategoryToPost(postId, categoryId);
-      res.status(200).json({ message: "Category added to post!" });
-    } catch (err) {
-      res
-        .status(500)
-        .json({ error: "Internal server error", details: err.message });
+  try {
+    const post = await postsModel.getPostById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
     }
-  } else {
-    res.status(400).json({ error: "Invalid data!" });
+
+    const category = await categoriesModel.getCategoryById(categoryId);
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    await postsModel.addCategoryToPost(uuidv4(), postId, categoryId);
+    res.status(200).json({ message: "Category added to post!" });
+  } catch (err) {
+    if (err.message === "DUPLICATE_CATEGORY") {
+      return res
+        .status(400)
+        .json({ error: "Category already added to this post" });
+    }
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: err.message });
   }
 }
 
 async function removeCategoryFromPost(req, res) {
-  let { postId, categoryId } = req.body;
+  const { postId, categoryId } = req.params;
 
-  postId = sanitizeHtml(postId);
-  categoryId = sanitizeHtml(categoryId);
+  if (!validator.isUUID(postId) || !validator.isUUID(categoryId)) {
+    return res.status(400).json({ error: "Invalid id format!" });
+  }
 
-  if (validator.isUUID(postId) && validator.isUUID(categoryId)) {
-    try {
-      await postsModel.removeCategoryFromPost(postId, categoryId);
-      res.status(200).json({ message: "Category removed from post!" });
-    } catch (err) {
-      res
-        .status(500)
-        .json({ error: "Internal server error", details: err.message });
+  try {
+    const post = await postsModel.getPostById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
     }
-  } else {
-    res.status(400).json({ error: "Invalid data!" });
+
+    const category = await categoriesModel.getCategoryById(categoryId);
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    await postsModel.removeCategoryFromPost(postId, categoryId);
+    res.status(200).json({ message: "Category removed from post!" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: err.message });
   }
 }
 
