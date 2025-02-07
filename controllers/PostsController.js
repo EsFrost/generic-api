@@ -157,10 +157,72 @@ async function deletePost(req, res) {
   }
 }
 
+async function getPostCategories(req, res) {
+  let postId = req.params.id;
+  postId = sanitizeHtml(postId);
+
+  if (validator.isUUID(postId)) {
+    try {
+      const categories = await postsModel.getPostCategories(postId);
+      res.status(200).send(categories);
+    } catch (err) {
+      res
+        .status(500)
+        .json({ error: "Internal server error", details: err.message });
+    }
+  } else {
+    res.status(400).json({ error: "Invalid post id!" });
+  }
+}
+
+async function addCategoryToPost(req, res) {
+  let { postId, categoryId } = req.body;
+  const id = uuidv4();
+
+  postId = sanitizeHtml(postId);
+  categoryId = sanitizeHtml(categoryId);
+
+  if (validator.isUUID(postId) && validator.isUUID(categoryId)) {
+    try {
+      await postsModel.addCategoryToPost(postId, categoryId);
+      res.status(200).json({ message: "Category added to post!" });
+    } catch (err) {
+      res
+        .status(500)
+        .json({ error: "Internal server error", details: err.message });
+    }
+  } else {
+    res.status(400).json({ error: "Invalid data!" });
+  }
+}
+
+async function removeCategoryFromPost(req, res) {
+  let { postId, categoryId } = req.body;
+
+  postId = sanitizeHtml(postId);
+  categoryId = sanitizeHtml(categoryId);
+
+  if (validator.isUUID(postId) && validator.isUUID(categoryId)) {
+    try {
+      await postsModel.removeCategoryFromPost(postId, categoryId);
+      res.status(200).json({ message: "Category removed from post!" });
+    } catch (err) {
+      res
+        .status(500)
+        .json({ error: "Internal server error", details: err.message });
+    }
+  } else {
+    res.status(400).json({ error: "Invalid data!" });
+  }
+}
+
 module.exports = {
   showAllPosts,
   showPost,
   newPost,
   editPost,
   deletePost,
+  getPostCategories,
+  addCategoryToPost,
+  removeCategoryFromPost,
 };

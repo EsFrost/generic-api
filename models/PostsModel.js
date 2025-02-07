@@ -28,10 +28,40 @@ async function deletePost(id) {
   const [rows] = await pool.query(`DELETE FROM posts WHERE id = ?`, [id]);
 }
 
+async function getPostCategories(postId) {
+  const [rows] = await pool.query(
+    `SELECT c.* FROM categories c 
+     INNER JOIN posts_categories pc ON c.id = pc.c_id 
+     WHERE pc.p_id = ?`,
+    [postId]
+  );
+  return rows;
+}
+
+async function addCategoryToPost(postId, categoryId) {
+  const id = uuidv4();
+  const [rows] = await pool.query(
+    `INSERT INTO posts_categories (id, p_id, c_id) VALUES (?, ?, ?)`,
+    [id, postId, categoryId]
+  );
+  return rows;
+}
+
+async function removeCategoryFromPost(postId, categoryId) {
+  const [rows] = await pool.query(
+    `DELETE FROM posts_categories WHERE p_id = ? AND c_id = ?`,
+    [postId, categoryId]
+  );
+  return rows;
+}
+
 module.exports = {
   getAllPosts,
   getPostById,
   createPost,
   editPost,
   deletePost,
+  getPostCategories,
+  addCategoryToPost,
+  removeCategoryFromPost,
 };
