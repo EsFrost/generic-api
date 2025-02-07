@@ -36,7 +36,7 @@ async function loginUser(req, res) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      const token = generateToken(user);
+      const token = generateToken(user[0]);
 
       // secure: process.env.NODE_ENV === "production"
       res.cookie("token", token, {
