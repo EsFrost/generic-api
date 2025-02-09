@@ -106,18 +106,19 @@ async function showPost(req, res) {
 }
 
 async function newPost(req, res) {
-  let { title, content } = req.body;
+  let { title, content, image_url } = req.body;
   const id = uuidv4();
 
   title = sanitizeHtml(title);
   content = sanitizeHtml(content, sanitizeOptions);
+  image_url = sanitizeHtml(image_url);
 
   if (!title || !content) {
     return res.status(400).json({ error: "Title and content are required!" });
   }
 
   try {
-    await postsModel.createPost(id, title, content);
+    await postsModel.createPost(id, title, content, image_url);
     res.status(200).json({ message: "Post created successfully!" });
   } catch (err) {
     res

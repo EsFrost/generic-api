@@ -10,10 +10,10 @@ async function getPostById(id) {
   return rows[0];
 }
 
-async function createPost(id, title, content) {
+async function createPost(id, title, content, image_url) {
   const [rows] = await pool.query(
-    `INSERT INTO posts (id, title, content) VALUES (?, ?, ?)`,
-    [id, title, content]
+    `INSERT INTO posts (id, title, content, image_url) VALUES (?, ?, ?, ?)`,
+    [id, title, content, image_url]
   );
 }
 
