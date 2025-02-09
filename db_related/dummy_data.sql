@@ -4,7 +4,7 @@ VALUES (
     'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     'admin',
     'admin@example.com',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewfWxHrR/jQh/zTC'  -- 'admin123' hashed
+    '$2b$10$KYChom.axPybSUOGCw9IieLrE5MqCGX1UCbKyF6Rf1V1YpPz4sNe.'  -- 'admin123' hashed
 );
 
 -- Then insert all categories

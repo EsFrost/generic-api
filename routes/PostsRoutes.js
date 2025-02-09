@@ -22,5 +22,11 @@ postsRouter.delete(
   authMiddleware,
   postsController.removeCategoryFromPost
 );
+postsRouter.post(
+  "/upload",
+  authMiddleware,
+  postsController.uploadMiddleware,
+  postsController.uploadImage
+);
 
 module.exports = postsRouter;

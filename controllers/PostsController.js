@@ -3,6 +3,9 @@ const postsModel = require("../models/PostsModel");
 const categoriesModel = require("../models/CategoriesModel");
 const sanitizeHtml = require("sanitize-html");
 const validator = require("validator");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 require("dotenv").config();
 
 // Configure sanitize-html options for TinyMCE content
@@ -256,6 +259,60 @@ async function removeCategoryFromPost(req, res) {
   }
 }
 
+// Configure multer for image upload
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = "public/uploads";
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Create unique filename
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  // Accept images only
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+    return cb(new Error("Only image files are allowed!"), false);
+  }
+  cb(null, true);
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+});
+
+// Add this new function to handle file uploads
+async function uploadImage(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Return the file path that can be stored in the database
+    const filePath = `/uploads/${req.file.filename}`;
+    res.status(200).json({
+      message: "File uploaded successfully",
+      path: filePath,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Error uploading file",
+      details: err.message,
+    });
+  }
+}
+
 module.exports = {
   showAllPosts,
   showPost,
@@ -265,4 +322,6 @@ module.exports = {
   getPostCategories,
   addCategoryToPost,
   removeCategoryFromPost,
+  uploadImage,
+  uploadMiddleware: upload.single("image"),
 };

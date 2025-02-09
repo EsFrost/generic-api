@@ -33,6 +33,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use("/posts", postsRouter);
+app.use("/uploads", express.static("public/uploads"));
 app.use("/users", usersRouter);
 app.use("/categories", categoriesRouter);
 
