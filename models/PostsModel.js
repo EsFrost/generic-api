@@ -17,10 +17,10 @@ async function createPost(id, title, content) {
   );
 }
 
-async function editPost(title, content, id) {
+async function editPost(title, content, image_url, id) {
   const [rows] = await pool.query(
-    `UPDATE posts SET title = ?, content = ? WHERE id = ?`,
-    [title, content, id]
+    `UPDATE posts SET title = ?, content = ?, image_url = ? WHERE id = ?`,
+    [title, content, image_url, id]
   );
 }
 

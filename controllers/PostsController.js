@@ -127,11 +127,12 @@ async function newPost(req, res) {
 }
 
 async function editPost(req, res) {
-  let { title, content } = req.body;
+  let { title, content, image_url } = req.body;
   const id = req.params.id;
 
   title = sanitizeHtml(title);
   content = sanitizeHtml(content, sanitizeOptions);
+  image_url = sanitizeHtml(image_url);
 
   if (!validator.isUUID(id)) {
     return res.status(400).json({ error: "Invalid post id!" });
@@ -147,7 +148,7 @@ async function editPost(req, res) {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    await postsModel.editPost(title, content, id);
+    await postsModel.editPost(title, content, image_url, id);
     res.status(200).json({ message: "Post edited successfully!" });
   } catch (err) {
     res
