@@ -55,7 +55,7 @@ async function newCategory(req, res) {
       return res.status(400).json({ error: "Category already exists" });
     }
 
-    await categoriesModel.createCategory(name);
+    await categoriesModel.createCategory(id, name);
     res.status(200).json({ message: "Category created successfully!" });
   } catch (err) {
     res

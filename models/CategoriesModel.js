@@ -19,10 +19,11 @@ async function getCategoryByName(name) {
   return rows[0];
 }
 
-async function createCategory(name) {
-  const [rows] = await pool.query(`INSERT INTO categories (name) VALUES (?)`, [
-    name,
-  ]);
+async function createCategory(id, name) {
+  const [rows] = await pool.query(
+    `INSERT INTO categories (id, name) VALUES (?, ?)`,
+    [id, name]
+  );
 }
 
 async function editCategory(name, id) {
