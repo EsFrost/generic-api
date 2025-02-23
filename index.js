@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const postsRouter = require("./routes/PostsRoutes");
 const usersRouter = require("./routes/UsersRoutes");
 const categoriesRouter = require("./routes/CategoriesRoutes");
+const path = require("path");
 require("dotenv").config();
 
 app.use(express.json());

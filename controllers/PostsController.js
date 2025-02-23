@@ -119,7 +119,10 @@ async function newPost(req, res) {
 
   try {
     await postsModel.createPost(id, title, content, image_url);
-    res.status(200).json({ message: "Post created successfully!" });
+    res.status(200).json({
+      message: "Post created successfully!",
+      id: id, // Added the post ID to the response
+    });
   } catch (err) {
     res
       .status(500)
@@ -264,8 +267,7 @@ async function removeCategoryFromPost(req, res) {
 // Configure multer for image upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = "public/uploads";
-    // Create directory if it doesn't exist
+    const uploadDir = "H:\\projects\\generic-blog\\src\\assets\\uploads";
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -294,15 +296,14 @@ const upload = multer({
   },
 });
 
-// Add this new function to handle file uploads
+// Upload image function
 async function uploadImage(req, res) {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-
-    // Return the file path that can be stored in the database
-    const filePath = `/uploads/${req.file.filename}`;
+    // Return path relative to assets folder
+    const filePath = `/assets/uploads/${req.file.filename}`;
     res.status(200).json({
       message: "File uploaded successfully",
       path: filePath,
